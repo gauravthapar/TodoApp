@@ -57,7 +57,7 @@ def createtodo(request):
 
 @login_required
 def currenttodods(request):
-    todos = Todo.objects.filter(user = request.user, datecompleted__isnull = True )
+    todos = Todo.objects.filter(user = request.user, datecompleted__isnull = True ).order_by('duedate')
     return render(request, 'todolist/currenttodos.html',{'todos':todos})
 
 
