@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib.auth import login, logout, authenticate
-from .forms import TodoForm
+from .forms import TodoForm, SignUpForm
 from .models import Todo
 from django.utils import timezone 
 from django.contrib.auth.decorators import login_required
@@ -12,29 +12,41 @@ from django.contrib.auth.decorators import login_required
 def home(request):
     return render(request, 'todolist/home.html')
 
+
 def signupuser(request):
-    if request.method == 'GET':
-        return render(request, 'todolist/signupuser.html', {'form':UserCreationForm()})
-    else:
-        if request.POST['password1'] == request.POST['password2']:
-            try:
-                user = User.objects.create_user(request.POST['username'], password=request.POST['password1'])
-                user.save()
-                login(request,user)
-                return redirect('currenttodos')
-            except IntegrityError:
-                return render(request, 'todolist/signupuser.html', {'form':UserCreationForm(),'error':'That username has already been taken. Please choose a nw username.'})
+    form = SignUpForm(request.POST)
+    if request.method == "POST":
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=password)
+            login(request, user)
+            return redirect('currenttodos')
         else:
-            return render(request, 'todolist/signupuser.html', {'form':UserCreationForm(),'error':'Passwords did not match !'})
+            context = {
+                'form': form,
+                'error': form.errors
+            }
+            return render(request, 'todolist/signupuser.html', context )
+    else:
+        return render(request, 'todolist/signupuser.html', {'form': form})
 
 
 def loginuser(request):
     if request.method == 'GET':
-        return render(request, 'todolist/loginuser.html', {'form':AuthenticationForm()})
+        context = {
+            'form':AuthenticationForm()
+        }
+        return render(request, 'todolist/loginuser.html', context )
     else:
         user = authenticate(request, username=request.POST['username'], password=request.POST['password'])
         if user is None:
-            return render(request, 'todolist/loginuser.html', {'form':AuthenticationForm(), 'error':'username and password doest not match'})
+            context = {
+                'form': AuthenticationForm(),
+                'error': 'username and password doest not match'
+            }
+            return render(request, 'todolist/loginuser.html', context )
         else:
             login(request,user)
             return redirect('currenttodos')
@@ -43,7 +55,10 @@ def loginuser(request):
 @login_required
 def createtodo(request):
     if request.method == "GET":
-        return render(request, 'todolist/createtodo.html', {'form':TodoForm()})
+        context = {
+            'form': TodoForm()
+        }
+        return render(request, 'todolist/createtodo.html', context)
     else:
         try:
             form = TodoForm(request.POST)
@@ -52,19 +67,29 @@ def createtodo(request):
             newtodo.save()
             return redirect('currenttodos')
         except ValueError:
-            return render(request, 'todolist/createtodo.html', {'form':TodoForm(), 'error':'Bad data passed in. Try Again!'})
+            context = {
+                'form': TodoForm(),
+                'error': 'Bad data passed in. Try Again!'
+            }
+            return render(request, 'todolist/createtodo.html', context)
 
 
 @login_required
 def currenttodods(request):
     todos = Todo.objects.filter(user = request.user, datecompleted__isnull = True ).order_by('duedate')
-    return render(request, 'todolist/currenttodos.html',{'todos':todos})
+    context = {
+        'todos': todos
+    }
+    return render(request, 'todolist/currenttodos.html', context)
 
 
 @login_required
 def completedtodos(request):
     todos = Todo.objects.filter(user = request.user, datecompleted__isnull = False ).order_by('-datecompleted')
-    return render(request, 'todolist/completedtodos.html',{'todos':todos})
+    context = {
+        'todos': todos
+    }
+    return render(request, 'todolist/completedtodos.html', context)
 
 
 @login_required
@@ -72,14 +97,23 @@ def viewtodo(request, todo_pk):
     todo = get_object_or_404(Todo, pk=todo_pk, user = request.user)
     if request.method == "GET":
         form = TodoForm(instance = todo)
-        return render(request, 'todolist/viewtodo.html', {'todo':todo, 'form':form})
+        context = {
+            'todo': todo,
+            'form': form
+        }
+        return render(request, 'todolist/viewtodo.html', context)
     else:
         try:
             form = TodoForm(request.POST, instance = todo)
             form.save()
             return redirect('currenttodos')
         except ValueError:
-            return render(request, 'todolist/viewtodo.html', {'todo':todo, 'form':form, 'error':'Bad data passed in. Try Again!'})
+            context = {
+                'todo': todo,
+                'form': form,
+                'error': 'Bad data passed in. Try Again!'
+            }
+            return render(request, 'todolist/viewtodo.html', context)
             
 
 @login_required
