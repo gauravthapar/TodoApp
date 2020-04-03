@@ -16,12 +16,31 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from todolist import views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('signup/',views.signupuser, name = 'signupuser'),
     path('login/',views.loginuser, name ="loginuser"),
     path('logout/',views.logoutuser, name = 'logoutuser'),
+    path('password_reset/',
+        auth_views.PasswordResetView.as_view(template_name = 'todolist/password_reset.html'), 
+        name = "password_reset"
+    ),
+    path('password_reset/done/',
+        auth_views.PasswordResetDoneView.as_view(template_name = 'todolist/password_reset_sent.html'), 
+        name = "password_reset_done"
+    ),
+    path('password_reset/<uidb64>/<token>/',
+        auth_views.PasswordResetConfirmView.as_view(template_name = 'todolist/password_reset_form.html'), 
+        name = "password_reset_confirm"
+    ),
+    path('password_reset/complete/',
+        auth_views.PasswordResetCompleteView.as_view(template_name = 'todolist/password_reset_done.html'), 
+        name = "password_reset_complete"
+    ),
+
+
 
     path('',views.home, name = "home"),
     path('current/',views.currenttodods, name = "currenttodos"),
@@ -31,3 +50,14 @@ urlpatterns = [
     path('todo/<int:todo_pk>/complete', views.completetodo, name = "completetodo"),
     path('todo/<int:todo_pk>/delete', views.deletetodo, name = "deletetodo"),
 ]
+
+
+
+
+#accounts/logout/ [name='logout']
+#accounts/password_change/ [name='password_change']
+#accounts/password_change/done/ [name='password_change_done']
+#accounts/password_reset/ [name='password_reset']
+#accounts/password_reset/done/ [name='password_reset_done']
+#accounts/reset/<uidb64>/<token>/ [name='password_reset_confirm']
+#accounts/reset/done/ [name='password_reset_complete']
