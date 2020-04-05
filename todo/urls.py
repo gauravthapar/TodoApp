@@ -23,6 +23,7 @@ urlpatterns = [
     path('signup/',views.signupuser, name = 'signupuser'),
     path('login/',views.loginuser, name ="loginuser"),
     path('logout/',views.logoutuser, name = 'logoutuser'),
+
     path('password_reset/',
         auth_views.PasswordResetView.as_view(template_name = 'todolist/password_reset.html'), 
         name = "password_reset"
@@ -40,6 +41,15 @@ urlpatterns = [
         name = "password_reset_complete"
     ),
 
+    path('password_change',
+        auth_views.PasswordChangeView.as_view(template_name = 'todolist/password_change.html'), 
+        name = "password_change"
+    ),
+
+    path('password_change/done',
+        auth_views.PasswordChangeDoneView.as_view(template_name = 'todolist/password_change_done.html'), 
+        name = "password_change_done"
+    ),
 
 
     path('',views.home, name = "home"),
@@ -50,14 +60,3 @@ urlpatterns = [
     path('todo/<int:todo_pk>/complete', views.completetodo, name = "completetodo"),
     path('todo/<int:todo_pk>/delete', views.deletetodo, name = "deletetodo"),
 ]
-
-
-
-
-#accounts/logout/ [name='logout']
-#accounts/password_change/ [name='password_change']
-#accounts/password_change/done/ [name='password_change_done']
-#accounts/password_reset/ [name='password_reset']
-#accounts/password_reset/done/ [name='password_reset_done']
-#accounts/reset/<uidb64>/<token>/ [name='password_reset_confirm']
-#accounts/reset/done/ [name='password_reset_complete']
