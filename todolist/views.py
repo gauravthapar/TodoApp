@@ -14,42 +14,48 @@ def home(request):
 
 
 def signupuser(request):
-    form = SignUpForm(request.POST)
-    if request.method == "POST":
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')
-            user = authenticate(username=username, password=password)
-            login(request, user)
-            return redirect('currenttodos')
-        else:
-            context = {
-                'form': form,
-                'error': form.errors
-            }
-            return render(request, 'todolist/signupuser.html', context )
+    if request.user.is_authenticated:
+        return redirect('currenttodos')
     else:
-        return render(request, 'todolist/signupuser.html', {'form': form})
+        form = SignUpForm(request.POST)
+        if request.method == "POST":
+            if form.is_valid():
+                form.save()
+                username = form.cleaned_data.get('username')
+                password = form.cleaned_data.get('password1')
+                user = authenticate(username=username, password=password)
+                login(request, user)
+                return redirect('currenttodos')
+            else:
+                context = {
+                    'form': form,
+                    'error': form.errors
+                }
+                return render(request, 'todolist/signupuser.html', context )
+        else:
+            return render(request, 'todolist/signupuser.html', {'form': form})
 
 
 def loginuser(request):
-    if request.method == 'GET':
-        context = {
-            'form':AuthenticationForm()
-        }
-        return render(request, 'todolist/loginuser.html', context )
+    if request.user.is_authenticated:
+        return redirect('currenrttodos')
     else:
-        user = authenticate(request, username=request.POST['username'], password=request.POST['password'])
-        if user is None:
+        if request.method == 'GET':
             context = {
-                'form': AuthenticationForm(),
-                'error': 'username and password doest not match'
+                'form':AuthenticationForm()
             }
             return render(request, 'todolist/loginuser.html', context )
         else:
-            login(request,user)
-            return redirect('currenttodos')
+            user = authenticate(request, username=request.POST['username'], password=request.POST['password'])
+            if user is None:
+                context = {
+                    'form': AuthenticationForm(),
+                    'error': 'username and password doest not match'
+                }
+                return render(request, 'todolist/loginuser.html', context )
+            else:
+                login(request,user)
+                return redirect('currenttodos')
 
 
 @login_required
@@ -135,7 +141,7 @@ def deletetodo(request, todo_pk):
 
 @login_required
 def logoutuser(request):
-    if request.method == "POST":
+    if request.method == "GET":
         logout(request)
         return redirect('home')
 
